@@ -6,7 +6,7 @@ Interactive polyrhythm website using React.js with Chakra UI and Vite
 - Yarn (version 1.22 or higher)
 
 ## Available Scripts
-- `yarn dev` - Start development server $<-- use this for now$
+- `yarn dev` - Start development server $\larr$ use this for now
 - `yarn build` - Build for production
 - `yarn preview` - Preview production build
 - `yarn lint` - Run ESLint
