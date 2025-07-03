@@ -1,7 +1,7 @@
 # Polyrhythm
 Interactive polyrhythm website using React.js with Chakra UI and Vite
 
-### Prerequisites
+## Prerequisites
 - Node.js (version 16 or higher)
 - Yarn (version 1.22 or higher)
 
