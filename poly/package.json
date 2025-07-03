@@ -1,27 +1,43 @@
 {
-  "name": "poly",
-  "version": "0.1.0",
+  "name": "npo-template-merged",
+  "version": "1.0.0",
   "private": true,
+  "type": "module",
+  "repository": "git@github.com:ctc-uci/npo-template-merged.git",
+  "author": "CTC <ctc@uci.edu>",
+  "license": "MIT",
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "yarn tsx concurrently.ts",
+    "start": "yarn tsx concurrently.ts",
+    "prepare": "husky install",
+    "lint": "eslint",
+    "format": "npx prettier --write ."
   },
-  "dependencies": {
-    "@chakra-ui/react": "^3.21.1",
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "framer-motion": "^12.23.0",
-    "next": "15.3.4",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+  "lint-staged": {
+    "**/*.{js,jsx,ts,tsx}": "yarn run eslint"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.4",
-    "tailwindcss": "^4"
+    "@ianvs/prettier-plugin-sort-imports": "^4.3.1",
+    "@types/lint-staged": "^13.3.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^9.9.0",
+    "globals": "^15.9.0",
+    "husky": "^9.0.11",
+    "prettier": "3.3.3",
+    "typescript-eslint": "^8.1.0"
+  },
+  "workspaces": {
+    "packages": [
+      "client",
+      "server"
+    ],
+    "nohoist": [
+      "**/firebase",
+      "**/firebase/**"
+    ]
+  },
+  "packageManager": "yarn@1.22.22",
+  "engines": {
+    "node": ">=18"
   }
 }
