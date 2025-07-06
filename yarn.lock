@@ -2045,6 +2045,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"howler@npm:^2.2.4":
+  version: 2.2.4
+  resolution: "howler@npm:2.2.4"
+  checksum: 74a295f56fd9b2abce122b27ed12c33fa195fb8a76832803e92d8e462a1eca803b55f44c14db052211d0cfab85c7c5249664c68d95bbbc16c775fac73866c6ef
+  languageName: node
+  linkType: hard
+
 "http-cache-semantics@npm:^4.1.1":
   version: 4.2.0
   resolution: "http-cache-semantics@npm:4.2.0"
@@ -2742,7 +2749,9 @@ __metadata:
     framer-motion: "npm:^10.16.4"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
+    react-icons: "npm:^5.5.0"
     typescript: "npm:^5.0.2"
+    use-sound: "npm:^5.0.0"
     vite: "npm:^4.4.5"
   languageName: unknown
   linkType: soft
@@ -2854,6 +2863,15 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 5a3e92fb0025042ab613c54b8ff0aa6c3a45a4d4785c51c024758b02ff83a89295b458ba609c48d11f1c6bbcab6a6b032c5c17d1f3d168a2835cbbec3dea6a46
+  languageName: node
+  linkType: hard
+
+"react-icons@npm:^5.5.0":
+  version: 5.5.0
+  resolution: "react-icons@npm:5.5.0"
+  peerDependencies:
+    react: "*"
+  checksum: a24309bfc993c19cbcbfc928157e53a137851822779977b9588f6dd41ffc4d11ebc98b447f4039b0d309a858f0a42980f6bfb4477fb19f9f2d1bc2e190fcf79c
   languageName: node
   linkType: hard
 
@@ -3379,6 +3397,17 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 161599bf921cfaa41c85d2b01c871975ee99260f3e874c2d41c05890d41170297bdcf314bc5185e7a700de2034ac5b888e3efc8e9f35724f4918f53538d717c9
+  languageName: node
+  linkType: hard
+
+"use-sound@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "use-sound@npm:5.0.0"
+  dependencies:
+    howler: "npm:^2.2.4"
+  peerDependencies:
+    react: ">=16.8"
+  checksum: 128287009affb3e83abf88c117bb4ebbc1accf6cc4931bb90ea22dc550c9005472bf303d182f7883eb2191cb255664e6bcb20e5e5795427c185f47bf09784531
   languageName: node
   linkType: hard
 

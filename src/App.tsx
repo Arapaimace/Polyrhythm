@@ -4,17 +4,30 @@ import {
   VStack,
   HStack,
   Button,
-  Heading
+  Heading,
+  Input,
+  Text
 } from '@chakra-ui/react'
 
 import React, { useState, useEffect } from "react"
 
+import useSound from 'use-sound';
+import snare from './components/sound/snare.mp3'
+import kick from './components/sound/kick.mp3'
+import metronome from './components/sound/metronome.mp3'
+import PlayButton from './components/ui/playButton'
 
 function App() {
+  const [playSnare] = useSound(snare);
+  const [playKick] = useSound(kick);
+  const [playMetronome] = useSound(metronome);
   const [leftInput, setLeftInput] = useState('a');
   const [rightInput, setRightInput] = useState('l');
   const [lastKeyPressed, setLastKeyPressed] = useState("");
   const [configuring, setConfiguring] = useState<"left" | "right" | null>(null);
+  const [bpmInput, setBpmInput] = useState("100");
+  const [bpm, setBpm] = useState(100);
+  const [play, setPlay] = useState<"play" | "pause">("pause");
 
   const leftSet = () => {
     setConfiguring("left");
@@ -36,11 +49,9 @@ function App() {
       setConfiguring(null);
     } else {
       if (key === leftInput) {
-        console.log("Matched Left Input!");
+        playKick();
       } else if (key === rightInput) {
-        console.log("Matched Right Input!");
-      } else {
-        console.log("No Match");
+        playSnare();
       }
     }
   };
@@ -51,6 +62,13 @@ function App() {
       window.removeEventListener("keydown", handleKeydown);
     };
   }, [leftInput, rightInput, configuring]);
+
+  useEffect(() => {
+    if (play !== "play") return;
+    const intervalTime = (60 / bpm) * 1000;
+    const id = setInterval(playMetronome, intervalTime);
+    return () => clearInterval(id);
+  }, [play, bpm, playMetronome]);
 
   return (
     <Box bgGradient="radial(black, gray.900, gray.800)" w="100%" h="100vh">
@@ -63,22 +81,14 @@ function App() {
               w="100%"
               justifyContent="space-between"
             >
-              <Button
-                onClick={() => {
-                  leftSet();
-                }}
-              >
+              <Button onClick={leftSet}>
                 Configure Left Input
               </Button>
-
-              <Button
-                onClick={() => {
-                  rightSet();
-                }}
-              >
+              <Button onClick={rightSet}>
                 Configure Right Input
               </Button>
             </HStack>
+
             {configuring && (
               <Heading size="md" color="white" textAlign="center" mt={6}>
                 Press a key to configure the {configuring} input
@@ -95,10 +105,34 @@ function App() {
               h="40vh"
             />
           </Box>
+
+          <HStack>
+            <PlayButton 
+              playing={play === "play"} 
+              onClick={() => setPlay(prev => (prev === "play" ? "pause" : "play"))} 
+            />
+            <Text color="blue.100">BPM: </Text>
+            <Input
+              color="blue.100"
+              w="35%"
+              type="number"
+              min={30}
+              max={300}
+              value={bpmInput}
+              onChange={(e) => {
+                const txt = e.target.value;
+                setBpmInput(txt);
+                const n = parseInt(txt, 10);
+                if (!isNaN(n) && n >= 30 && n <= 300) {
+                  setBpm(n);
+                }
+              }}
+            />
+          </HStack>
         </VStack>
       </Center>
     </Box>
   );
 }
 
-export default App
+export default App;
