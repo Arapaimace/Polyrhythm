@@ -6,10 +6,14 @@ import {
   Button,
   Heading,
   Input,
-  Text
+  Text,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem
 } from '@chakra-ui/react'
 
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 
 import useSound from 'use-sound';
 import snare from './components/sound/snare.mp3'
@@ -28,6 +32,8 @@ function App() {
   const [bpmInput, setBpmInput] = useState("100");
   const [bpm, setBpm] = useState(100);
   const [play, setPlay] = useState<"play" | "pause">("pause");
+
+  const beats = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
   const leftSet = () => {
     setConfiguring("left");
@@ -107,11 +113,33 @@ function App() {
           </Box>
 
           <HStack>
+            <Menu>
+              <MenuButton as={Button} variant="outline" size="md" color="white" justifyContent="center">
+                Ratio (L)
+              </MenuButton>
+              <MenuButton as={Button} variant="outline" size="md" color="white" justifyContent="center">
+                Ratio (R)
+              </MenuButton>
+
+              <MenuList>
+                {beats.map((beat) => (
+                  <MenuItem key={beat}>{beat}</MenuItem> 
+                ))}
+              </MenuList>
+            </Menu>
             <PlayButton 
               playing={play === "play"} 
-              onClick={() => setPlay(prev => (prev === "play" ? "pause" : "play"))} 
+              onClick={() => {
+                setPlay(prev => {
+                  const next = prev === "play" ? "pause" : "play";
+                  if (next === "play") {
+                    playMetronome();
+                  }
+                  return next;
+                });
+              }} 
             />
-            <Text color="blue.100">BPM: </Text>
+            <Text fontWeight="bold" color="blue.100">BPM: </Text>
             <Input
               color="blue.100"
               w="35%"
