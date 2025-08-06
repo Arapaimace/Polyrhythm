@@ -114,19 +114,27 @@ function App() {
 
           <HStack>
             <Menu>
-              <MenuButton as={Button} variant="outline" size="md" color="white" justifyContent="center">
+              <MenuButton as={Button} variant="outline" size="md" color="white">
                 Ratio (L)
               </MenuButton>
-              <MenuButton as={Button} variant="outline" size="md" color="white" justifyContent="center">
-                Ratio (R)
-              </MenuButton>
-
               <MenuList>
                 {beats.map((beat) => (
-                  <MenuItem key={beat}>{beat}</MenuItem> 
+                  <MenuItem key={`left-${beat}`}>{beat}</MenuItem>
                 ))}
               </MenuList>
             </Menu>
+
+            <Menu>
+              <MenuButton as={Button} variant="outline" size="md" color="white">
+                Ratio (R)
+              </MenuButton>
+              <MenuList>
+                {beats.map((beat) => (
+                  <MenuItem key={`right-${beat}`}>{beat}</MenuItem>
+                ))}
+              </MenuList>
+            </Menu>
+
             <PlayButton 
               playing={play === "play"} 
               onClick={() => {
