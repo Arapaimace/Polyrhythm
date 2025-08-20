@@ -2,7 +2,10 @@
 
 # Polyrhythm
 
-Interactive polyrhythm website using React.js, Chakra UI, and Vite
+Interactive polyrhythm website.
+
+Frontend: Next.js (React) TypeScript, HTML/CSS w/ ChakraUI on Vite, deployed on Vercel
+Backend: Supabase PostgreSQL, Python (FastAPI)
 
 ## Prerequisites
 
