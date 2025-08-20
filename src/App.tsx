@@ -16,9 +16,9 @@ import {
 import { useState, useEffect } from "react"
 
 import useSound from 'use-sound';
-import snare from './components/sound/snare.mp3'
-import kick from './components/sound/kick.mp3'
-import metronome from './components/sound/metronome.mp3'
+import snare from './components/sound/snare.wav'
+import kick from './components/sound/kick.wav'
+import metronome from './components/sound/metronome.wav'
 import PlayButton from './components/ui/playButton'
 
 function App() {
