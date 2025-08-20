@@ -15,6 +15,6 @@ Backend: Supabase PostgreSQL, Python (FastAPI)
 ## Available Scripts
 
 - `yarn dev` - Start development server $\leftarrow$ use this for now
-- `yarn build` - Build for production
-- `yarn preview` - Preview production build
+- `yarn build` - Build for production (build managed by Vercel so don't use)
+- `yarn preview` - Preview production build (preview managed by Vercel so don't use)
 - `yarn lint` - Run ESLint
