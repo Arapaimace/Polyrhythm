@@ -4,7 +4,7 @@
 
 Interactive polyrhythm website.
 
-Frontend: Next.js (React) TypeScript, HTML/CSS w/ ChakraUI on Vite, deployed on Vercel
+Frontend: Next.js (React) TypeScript, HTML/CSS w/ ChakraUI on Vite, deployed on Vercel  
 Backend: Supabase PostgreSQL, Python (FastAPI)
 
 ## Prerequisites
