@@ -27,7 +27,6 @@ function App() {
   const [playMetronome] = useSound(metronome);
   const [leftInput, setLeftInput] = useState('a');
   const [rightInput, setRightInput] = useState('l');
-  const [lastKeyPressed, setLastKeyPressed] = useState("");
   const [configuring, setConfiguring] = useState<"left" | "right" | null>(null);
   const [bpmInput, setBpmInput] = useState("100");
   const [bpm, setBpm] = useState(100);
@@ -45,7 +44,6 @@ function App() {
 
   const handleKeydown = (event: KeyboardEvent) => {
     const key = event.key.toLowerCase();
-    setLastKeyPressed(key);
 
     if (configuring === "left") {
       setLeftInput(key);
