@@ -36,7 +36,7 @@ function App() {
   const [leftBeat, setLeftBeat] = useState<number>(1);
   const [rightBeat, setRightBeat] = useState<number>(1);
 
-  const [progress, setProgress] = useState(0); // 0 → 1 progress across the measure
+  const [progress, setProgress] = useState(0);
   const requestRef = useRef<number>();
   const startTimeRef = useRef<number>();
 
@@ -73,13 +73,15 @@ function App() {
     };
   }, [leftInput, rightInput, configuring]);
 
-  // sound loop
   useEffect(() => {
     if (play !== "play") return;
 
     const beatDuration = (60 / bpm) * 1000;
     const beatsPerMeasure = Math.max(leftBeat, rightBeat);
     const measureLength = beatDuration * beatsPerMeasure;
+
+    playKick();
+    playSnare();
 
     const idKick = setInterval(playKick, measureLength / leftBeat);
     const idSnare = setInterval(playSnare, measureLength / rightBeat);
@@ -118,6 +120,9 @@ function App() {
     };
   }, [play, bpm, leftBeat, rightBeat]);
 
+
+     
+
   return (
     <Box bgGradient="radial(black, gray.900, gray.800)" w="100%" h="100vh">
       <Center w="100vw" h="calc(100vh - 80px)">
@@ -130,10 +135,10 @@ function App() {
               justifyContent="space-between"
             >
               <Button onClick={leftSet}>
-                Configure Left Input
+                Left Input: ({leftInput})
               </Button>
               <Button onClick={rightSet}>
-                Configure Right Input
+                Right Input: ({rightInput})
               </Button>
             </HStack>
 
@@ -169,25 +174,36 @@ function App() {
           <HStack>
             <Menu>
               <MenuButton as={Button} variant="outline" size="md" color="white">
-                Ratio (L)
+                L: {leftBeat}
               </MenuButton>
               <MenuList>
                 {beats.map((beat) => (
-                  <MenuItem key={`left-${beat}`}  onClick = {() => setLeftBeat(beat)}>{beat}</MenuItem>
+                  <MenuItem 
+                    key={`right-${beat}`} 
+                    onClick={() => setLeftBeat(beat)}
+                  >
+                    {beat}
+                  </MenuItem>
                 ))}
               </MenuList>
             </Menu>
 
             <Menu>
               <MenuButton as={Button} variant="outline" size="md" color="white">
-                Ratio (R)
+                R: {rightBeat}
               </MenuButton>
               <MenuList>
                 {beats.map((beat) => (
-                  <MenuItem key={`right-${beat}`} onClick = {() => setRightBeat(beat)}>{beat}</MenuItem>
+                  <MenuItem 
+                    key={`right-${beat}`} 
+                    onClick={() => setRightBeat(beat)}
+                  >
+                    {beat}
+                  </MenuItem>
                 ))}
               </MenuList>
             </Menu>
+
 
             <PlayButton 
               playing={play === "play"} 
