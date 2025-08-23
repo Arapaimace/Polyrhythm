@@ -13,7 +13,7 @@ import {
   MenuItem
 } from '@chakra-ui/react'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 
 import useSound from 'use-sound';
 import snare from './components/sound/snare.wav'
@@ -35,6 +35,10 @@ function App() {
   const beats = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
   const [leftBeat, setLeftBeat] = useState<number>(1);
   const [rightBeat, setRightBeat] = useState<number>(1);
+
+  const [progress, setProgress] = useState(0); // 0 → 1 progress across the measure
+  const requestRef = useRef<number>();
+  const startTimeRef = useRef<number>();
 
   const leftSet = () => {
     setConfiguring("left");
@@ -69,6 +73,7 @@ function App() {
     };
   }, [leftInput, rightInput, configuring]);
 
+  // sound loop
   useEffect(() => {
     if (play !== "play") return;
 
@@ -87,6 +92,31 @@ function App() {
     };
   }, [play, bpm, leftBeat, rightBeat, playKick, playSnare, playMetronome]);
 
+  useEffect(() => {
+    if (play !== "play") {
+      setProgress(0);
+      return;
+    }
+
+    const beatDuration = (60 / bpm) * 1000;
+    const beatsPerMeasure = Math.max(leftBeat, rightBeat);
+    const measureLength = beatDuration * beatsPerMeasure;
+
+    const animate = (time: number) => {
+      if (!startTimeRef.current) startTimeRef.current = time;
+      const elapsed = time - startTimeRef.current;
+      const frac = (elapsed % measureLength) / measureLength;
+      setProgress(frac);
+      requestRef.current = requestAnimationFrame(animate);
+    };
+
+    requestRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      startTimeRef.current = undefined;
+    };
+  }, [play, bpm, leftBeat, rightBeat]);
 
   return (
     <Box bgGradient="radial(black, gray.900, gray.800)" w="100%" h="100vh">
@@ -121,7 +151,19 @@ function App() {
               borderRadius="md"
               w="100%"
               h="40vh"
-            />
+              position="relative"
+              overflow="hidden"
+            >
+              <Box
+                position="absolute"
+                top={0}
+                bottom={0}
+                width="4px"
+                bg="orange.300"
+                left={`${progress * 100}%`}
+                transform="translateX(-50%)"
+              />
+            </Box>
           </Box>
 
           <HStack>
