@@ -33,6 +33,8 @@ function App() {
   const [play, setPlay] = useState<"play" | "pause">("pause");
 
   const beats = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+  const [leftBeat, setLeftBeat] = useState<number>(1);
+  const [rightBeat, setRightBeat] = useState<number>(1);
 
   const leftSet = () => {
     setConfiguring("left");
@@ -69,10 +71,22 @@ function App() {
 
   useEffect(() => {
     if (play !== "play") return;
-    const intervalTime = (60 / bpm) * 1000;
-    const id = setInterval(playMetronome, intervalTime);
-    return () => clearInterval(id);
-  }, [play, bpm, playMetronome]);
+
+    const beatDuration = (60 / bpm) * 1000;
+    const beatsPerMeasure = Math.max(leftBeat, rightBeat);
+    const measureLength = beatDuration * beatsPerMeasure;
+
+    const idKick = setInterval(playKick, measureLength / leftBeat);
+    const idSnare = setInterval(playSnare, measureLength / rightBeat);
+    const idMetronome = setInterval(playMetronome, measureLength);
+
+    return () => {
+      clearInterval(idKick);
+      clearInterval(idSnare);
+      clearInterval(idMetronome);
+    };
+  }, [play, bpm, leftBeat, rightBeat, playKick, playSnare, playMetronome]);
+
 
   return (
     <Box bgGradient="radial(black, gray.900, gray.800)" w="100%" h="100vh">
@@ -117,7 +131,7 @@ function App() {
               </MenuButton>
               <MenuList>
                 {beats.map((beat) => (
-                  <MenuItem key={`left-${beat}`}>{beat}</MenuItem>
+                  <MenuItem key={`left-${beat}`}  onClick = {() => setLeftBeat(beat)}>{beat}</MenuItem>
                 ))}
               </MenuList>
             </Menu>
@@ -128,7 +142,7 @@ function App() {
               </MenuButton>
               <MenuList>
                 {beats.map((beat) => (
-                  <MenuItem key={`right-${beat}`}>{beat}</MenuItem>
+                  <MenuItem key={`right-${beat}`} onClick = {() => setRightBeat(beat)}>{beat}</MenuItem>
                 ))}
               </MenuList>
             </Menu>
