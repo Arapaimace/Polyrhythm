@@ -40,13 +40,9 @@ function App() {
   const requestRef = useRef<number>();
   const startTimeRef = useRef<number>();
 
-  const leftSet = () => {
-    setConfiguring("left");
-  };
-
-  const rightSet = () => {
-    setConfiguring("right");
-  };
+  const leftSet = () => setConfiguring("left");
+  const rightSet = () => setConfiguring("right");
+  
 
   const handleKeydown = (event: KeyboardEvent) => {
     const key = event.key.toLowerCase();
@@ -120,9 +116,6 @@ function App() {
     };
   }, [play, bpm, leftBeat, rightBeat]);
 
-
-     
-
   return (
     <Box bgGradient="radial(black, gray.900, gray.800)" w="100%" h="100vh">
       <Center w="100vw" h="calc(100vh - 80px)">
@@ -168,6 +161,53 @@ function App() {
                 left={`${progress * 100}%`}
                 transform="translateX(-50%)"
               />
+
+              <VStack
+                position="absolute"
+                top={0}
+                bottom={0}
+                left={0}
+                right={0}
+                justify="space-between"
+                p={4}
+                pointerEvents="none"
+              >
+                <Box w="100%" position="relative" h="20px">
+                  {[...Array(leftBeat)].map((_, i) => {
+                    const position = (i / leftBeat) * 100;
+                    return (
+                      <Box
+                        key={`left-pill-${i}`}
+                        w="30px"
+                        h="10px"
+                        bg="teal.300"
+                        borderRadius="full"
+                        position="absolute"
+                        left={`${position}%`}
+                        transform="translateX(-50%)"
+                      />
+                    );
+                  })}
+                </Box>
+
+                <Box w="100%" position="relative" h="20px">
+                  {[...Array(rightBeat)].map((_, i) => {
+                    const position = (i / rightBeat) * 100;
+                    return (
+                      <Box
+                        key={`right-pill-${i}`}
+                        w="30px"
+                        h="10px"
+                        bg="pink.300"
+                        borderRadius="full"
+                        position="absolute"
+                        left={`${position}%`}
+                        transform="translateX(-50%)"
+                      />
+                    );
+                  })}
+                </Box>
+              </VStack>
             </Box>
           </Box>
 
@@ -179,8 +219,11 @@ function App() {
               <MenuList>
                 {beats.map((beat) => (
                   <MenuItem 
-                    key={`right-${beat}`} 
-                    onClick={() => setLeftBeat(beat)}
+                    key={`left-${beat}`} 
+                    onClick={() => {
+                      setLeftBeat(beat);
+                      setPlay("pause");
+                    }}
                   >
                     {beat}
                   </MenuItem>
@@ -196,14 +239,16 @@ function App() {
                 {beats.map((beat) => (
                   <MenuItem 
                     key={`right-${beat}`} 
-                    onClick={() => setRightBeat(beat)}
+                    onClick={() => {
+                      setRightBeat(beat);
+                      setPlay("pause");
+                    }}
                   >
                     {beat}
                   </MenuItem>
                 ))}
               </MenuList>
             </Menu>
-
 
             <PlayButton 
               playing={play === "play"} 
@@ -217,6 +262,7 @@ function App() {
                 });
               }} 
             />
+
             <Text fontWeight="bold" color="blue.100">BPM: </Text>
             <Input
               color="blue.100"
@@ -231,6 +277,7 @@ function App() {
                 const n = parseInt(txt, 10);
                 if (!isNaN(n) && n >= 30 && n <= 300) {
                   setBpm(n);
+                  setPlay("pause");
                 }
               }}
             />
