@@ -18,3 +18,8 @@ Backend: Supabase PostgreSQL, Python (FastAPI)
 - `yarn build` - Build for production (build managed by Vercel so don't use)
 - `yarn preview` - Preview production build (preview managed by Vercel so don't use)
 - `yarn lint` - Run ESLint
+
+
+
+## FOR BACKEND
+Use LibreScore to get MIDI w/ Partitura library
