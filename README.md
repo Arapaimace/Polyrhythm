@@ -9,7 +9,6 @@ Backend: Supabase PostgreSQL, Python (FastAPI)
 
 ## Prerequisites
 
-- Node.js
 - Yarn
 
 ## Available Scripts
@@ -21,5 +20,6 @@ Backend: Supabase PostgreSQL, Python (FastAPI)
 
 
 
-## FOR BACKEND
+## FOR DEV
 Use LibreScore to get MIDI w/ Partitura library
+Use `.env` for db access, contact for dev access
