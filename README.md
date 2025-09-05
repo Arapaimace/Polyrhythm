@@ -4,8 +4,8 @@
 
 Interactive polyrhythm website.
 
-Frontend: Next.js (React) TypeScript, HTML/CSS w/ ChakraUI on Vite, deployed on Vercel  
-Backend: Supabase PostgreSQL, Python (FastAPI)
+Frontend: React w/ TypeScript, HTML/CSS w/ ChakraUI, dev & build on Vite, deployed on Vercel  
+Backend: Supabase - PostgreSQL, Python (FastAPI, Partitura)
 
 ## Prerequisites
 
@@ -21,5 +21,5 @@ Backend: Supabase PostgreSQL, Python (FastAPI)
 
 
 ## FOR DEV
-Use LibreScore to get MIDI w/ Partitura library
+Use LibreScore to get mscz w/ Partitura library, convert to musicxml
 Use `.env` for db access, contact for dev access
