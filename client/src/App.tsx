@@ -40,34 +40,20 @@ function App() {
   const requestRef = useRef<number>();
   const startTimeRef = useRef<number>();
 
+  const [avgOffset, setAvgOffset] = useState<number | null>(null);
+  const offsetsRef = useRef<number[]>([]);
+  const leftBeatsRef = useRef<number[]>([]);
+  const rightBeatsRef = useRef<number[]>([]);
+
   const leftSet = () => setConfiguring("left");
   const rightSet = () => setConfiguring("right");
-  
-
-  const handleKeydown = (event: KeyboardEvent) => {
-    const key = event.key.toLowerCase();
-
-    if (configuring === "left") {
-      setLeftInput(key);
-      setConfiguring(null);
-    } else if (configuring === "right") {
-      setRightInput(key);
-      setConfiguring(null);
-    } else {
-      if (key === leftInput) {
-        playKick();
-      } else if (key === rightInput) {
-        playSnare();
-      }
-    }
-  };
 
   useEffect(() => {
-    window.addEventListener("keydown", handleKeydown);
-    return () => {
-      window.removeEventListener("keydown", handleKeydown);
-    };
-  }, [leftInput, rightInput, configuring]);
+    if (play === "play") {
+      offsetsRef.current = [];
+      setAvgOffset(null);
+    }
+  }, [play]);
 
   useEffect(() => {
     if (play !== "play") return;
@@ -76,11 +62,26 @@ function App() {
     const beatsPerMeasure = Math.max(leftBeat, rightBeat);
     const measureLength = beatDuration * beatsPerMeasure;
 
+    const now = performance.now();
+
+    leftBeatsRef.current = Array.from({ length: leftBeat }, (_, i) => now + i * (measureLength / leftBeat));
+    rightBeatsRef.current = Array.from({ length: rightBeat }, (_, i) => now + i * (measureLength / rightBeat));
+
     playKick();
     playSnare();
 
-    const idKick = setInterval(playKick, measureLength / leftBeat);
-    const idSnare = setInterval(playSnare, measureLength / rightBeat);
+    const idKick = setInterval(() => {
+      const next = performance.now();
+      leftBeatsRef.current.push(next);
+      playKick();
+    }, measureLength / leftBeat);
+
+    const idSnare = setInterval(() => {
+      const next = performance.now();
+      rightBeatsRef.current.push(next);
+      playSnare();
+    }, measureLength / rightBeat);
+
     const idMetronome = setInterval(playMetronome, measureLength);
 
     return () => {
@@ -88,7 +89,7 @@ function App() {
       clearInterval(idSnare);
       clearInterval(idMetronome);
     };
-  }, [play, bpm, leftBeat, rightBeat, playKick, playSnare, playMetronome]);
+  }, [play, bpm, leftBeat, rightBeat]);
 
   useEffect(() => {
     if (play !== "play") {
@@ -115,6 +116,50 @@ function App() {
       startTimeRef.current = undefined;
     };
   }, [play, bpm, leftBeat, rightBeat]);
+
+  const handleKeydown = (event: KeyboardEvent) => {
+    const key = event.key.toLowerCase();
+    const now = performance.now();
+
+    if (configuring === "left") {
+      setLeftInput(key);
+      setConfiguring(null);
+    } else if (configuring === "right") {
+      setRightInput(key);
+      setConfiguring(null);
+    } else {
+      if (key === leftInput) {
+        playKick();
+        const closest = findClosest(now, leftBeatsRef.current);
+        recordOffset(now - closest);
+      } else if (key === rightInput) {
+        playSnare();
+        const closest = findClosest(now, rightBeatsRef.current);
+        recordOffset(now - closest);
+      }
+    }
+  };
+
+  function findClosest(time: number, beats: number[]) {
+    if (beats.length === 0) return time;
+    return beats.reduce((a, b) =>
+      Math.abs(b - time) < Math.abs(a - time) ? b : a
+    );
+  }
+
+  function recordOffset(offset: number) {
+    const absOffset = Math.abs(offset);
+    offsetsRef.current.push(absOffset);
+    const avg = offsetsRef.current.reduce((a, b) => a + b, 0) / offsetsRef.current.length;
+    setAvgOffset(avg);
+  }
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeydown);
+    return () => {
+      window.removeEventListener("keydown", handleKeydown);
+    };
+  }, [leftInput, rightInput, configuring]);
 
   return (
     <Box bgGradient="radial(black, gray.900, gray.800)" w="100%" h="100vh">
@@ -282,6 +327,9 @@ function App() {
               }}
             />
           </HStack>
+          <Text color="white" fontWeight="bold">
+            Avg Offset: {avgOffset !== null ? avgOffset.toFixed(1) + " ms" : "--"}
+          </Text>
         </VStack>
       </Center>
     </Box>
