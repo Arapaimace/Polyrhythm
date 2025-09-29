@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev": "concurrently \"yarn workspace client dev\" \"yarn run dev:server\"",
-    "dev:server": "cd server && uvicorn src.main:app --reload --port 8000",
+    "dev:server": "cd server --reload --port 8000",
     "build": "yarn workspace client build",
     "lint": "yarn workspace client lint",
     "preview": "yarn workspace client preview"
