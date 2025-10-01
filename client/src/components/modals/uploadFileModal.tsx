@@ -41,4 +41,5 @@ const UploadFileModal = ({ isOpen, onClose }: UploadFileModalProps) => {
   );
 };
 
+//fix
 export default UploadFileModal;
