@@ -10,7 +10,8 @@ import {
   Menu,
   MenuButton,
   MenuList,
-  MenuItem
+  MenuItem,
+  useDisclosure
 } from '@chakra-ui/react'
 
 import { useState, useEffect, useRef } from "react"
@@ -20,6 +21,7 @@ import snare from './components/sound/snare.wav'
 import kick from './components/sound/kick.wav'
 import metronome from './components/sound/metronome.wav'
 import PlayButton from './components/ui/playButton'
+import UploadFileModal from "./components/modals/UploadFileModal"; // ✅
 
 function App() {
   const [playSnare] = useSound(snare);
@@ -31,6 +33,7 @@ function App() {
   const [bpmInput, setBpmInput] = useState("100");
   const [bpm, setBpm] = useState(100);
   const [play, setPlay] = useState<"play" | "pause">("pause");
+  const {isOpen, onOpen, onClose} = useDisclosure();
 
   const beats = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
   const [leftBeat, setLeftBeat] = useState<number>(1);
@@ -172,10 +175,20 @@ function App() {
               w="100%"
               justifyContent="space-between"
             >
-              <Button onClick={leftSet}>
+              <Button 
+                variant = "outline" 
+                onClick={leftSet}
+                bg = "black.100"
+                color = "white"
+              >
                 Left Input: ({leftInput})
               </Button>
-              <Button onClick={rightSet}>
+              <Button 
+                onClick={rightSet}
+                variant = "outline"
+                bg = "black.100"
+                color = "white"
+              >
                 Right Input: ({rightInput})
               </Button>
             </HStack>
@@ -326,6 +339,16 @@ function App() {
                 }
               }}
             />
+            <Button 
+              paddingLeft="8%"
+              paddingRight="8%"
+              bg = "orange.400"
+              color = "blue.800"
+              variant="outline"
+              onClick={onOpen}
+                > Upload File (TBD)
+            </Button>
+            <UploadFileModal isOpen={isOpen} onClose={onClose}/>
           </HStack>
           <Text color="white" fontWeight="bold">
             Avg Offset: {avgOffset !== null ? avgOffset.toFixed(1) + " ms" : "--"}
