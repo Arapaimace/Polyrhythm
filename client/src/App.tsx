@@ -21,7 +21,7 @@ import snare from './components/sound/snare.wav'
 import kick from './components/sound/kick.wav'
 import metronome from './components/sound/metronome.wav'
 import PlayButton from './components/ui/playButton'
-import UploadFileModal from "./components/modals/UploadFileModal"; // ✅
+import UploadFileModal from "./components/modals/UploadFileModal"; //
 
 function App() {
   const [playSnare] = useSound(snare);
