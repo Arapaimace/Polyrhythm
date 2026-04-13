@@ -2,7 +2,7 @@
 
 # Poly
 
-Interactive polyrhythm metronome metronome.
+Interactive polyrhythm metronome.
 
 Frontend: React w/ TypeScript, ChakraUI, dev & build on Vite, deployed on Vercel  
 Backend: Supabase - PostgreSQL, Python (FastAPI, Partitura)
