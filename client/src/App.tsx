@@ -7,6 +7,7 @@ import {
   Heading,
   Input,
   Text,
+  Image,
   Menu,
   MenuButton,
   MenuList,
@@ -21,7 +22,15 @@ import snare from './components/sound/snare.wav'
 import kick from './components/sound/kick.wav'
 import metronome from './components/sound/metronome.wav'
 import PlayButton from './components/ui/playButton'
-import UploadFileModal from "./components/modals/UploadFileModal"; //
+import UploadFileModal, { ParsedScore } from "./components/modals/UploadFileModal";
+
+const API_BASE = "http://127.0.0.1:8000";
+
+// Evenly-spaced onsets for a given beat count, e.g. evenOnsets(3) -> [0, 1/3, 2/3]
+const evenOnsets = (count: number): number[] =>
+  Array.from({ length: Math.max(count, 1) }, (_, i) => i / Math.max(count, 1));
+
+const clampBeat = (n: number) => Math.min(13, Math.max(1, n));
 
 function App() {
   const [playSnare] = useSound(snare);
@@ -33,67 +42,55 @@ function App() {
   const [bpmInput, setBpmInput] = useState("100");
   const [bpm, setBpm] = useState(100);
   const [play, setPlay] = useState<"play" | "pause">("pause");
-  const {isOpen, onOpen, onClose} = useDisclosure();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const beats = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
   const [leftBeat, setLeftBeat] = useState<number>(1);
   const [rightBeat, setRightBeat] = useState<number>(1);
 
+  // Onset positions (0-1 fractions of the measure) for each layer. Defaults
+  // to even subdivision, but a parsed score can replace these with the
+  // extracted polyrhythm's real onset timing.
+  const [leftOnsets, setLeftOnsets] = useState<number[]>(evenOnsets(1));
+  const [rightOnsets, setRightOnsets] = useState<number[]>(evenOnsets(1));
+
+  const [scoreImage, setScoreImage] = useState<string | null>(null);
+
   const [progress, setProgress] = useState(0);
   const requestRef = useRef<number>();
   const startTimeRef = useRef<number>();
 
-  const [avgOffset, setAvgOffset] = useState<number | null>(null);
-  const offsetsRef = useRef<number[]>([]);
-  const leftBeatsRef = useRef<number[]>([]);
-  const rightBeatsRef = useRef<number[]>([]);
-
   const leftSet = () => setConfiguring("left");
   const rightSet = () => setConfiguring("right");
 
-  useEffect(() => {
-    if (play === "play") {
-      offsetsRef.current = [];
-      setAvgOffset(null);
-    }
-  }, [play]);
+  const chooseLeftBeat = (beat: number) => {
+    setLeftBeat(beat);
+    setLeftOnsets(evenOnsets(beat));
+    setPlay("pause");
+  };
 
-  useEffect(() => {
-    if (play !== "play") return;
+  const chooseRightBeat = (beat: number) => {
+    setRightBeat(beat);
+    setRightOnsets(evenOnsets(beat));
+    setPlay("pause");
+  };
 
-    const beatDuration = (60 / bpm) * 1000;
-    const beatsPerMeasure = Math.max(leftBeat, rightBeat);
-    const measureLength = beatDuration * beatsPerMeasure;
+  const handleParsed = (result: ParsedScore) => {
+    const leftCount = clampBeat(result.left.count);
+    const rightCount = clampBeat(result.right.count);
+    setLeftBeat(leftCount);
+    setRightBeat(rightCount);
+    setLeftOnsets(result.left.onsets.length ? result.left.onsets : evenOnsets(leftCount));
+    setRightOnsets(result.right.onsets.length ? result.right.onsets : evenOnsets(rightCount));
+    setScoreImage(`${API_BASE}${result.image_path}?t=${Date.now()}`);
+    setPlay("pause");
+  };
 
-    const now = performance.now();
-
-    leftBeatsRef.current = Array.from({ length: leftBeat }, (_, i) => now + i * (measureLength / leftBeat));
-    rightBeatsRef.current = Array.from({ length: rightBeat }, (_, i) => now + i * (measureLength / rightBeat));
-
-    playKick();
-    playSnare();
-
-    const idKick = setInterval(() => {
-      const next = performance.now();
-      leftBeatsRef.current.push(next);
-      playKick();
-    }, measureLength / leftBeat);
-
-    const idSnare = setInterval(() => {
-      const next = performance.now();
-      rightBeatsRef.current.push(next);
-      playSnare();
-    }, measureLength / rightBeat);
-
-    const idMetronome = setInterval(playMetronome, measureLength);
-
-    return () => {
-      clearInterval(idKick);
-      clearInterval(idSnare);
-      clearInterval(idMetronome);
-    };
-  }, [play, bpm, leftBeat, rightBeat]);
-
+  // Single animation-frame loop drives both playback of the two rhythm
+  // layers and the progress bar, comparing each frame's position in the
+  // measure against every onset to fire it exactly once per pass. Using one
+  // rAF loop (rather than setInterval per layer) avoids drift and lets each
+  // layer use arbitrary (not just evenly-spaced) onset positions.
   useEffect(() => {
     if (play !== "play") {
       setProgress(0);
@@ -104,11 +101,36 @@ function App() {
     const beatsPerMeasure = Math.max(leftBeat, rightBeat);
     const measureLength = beatDuration * beatsPerMeasure;
 
+    let lastFrac = 0;
+    let firstFrame = true;
+
+    const fireCrossed = (onsets: number[], from: number, to: number, wrapped: boolean, play: () => void) => {
+      onsets.forEach((f) => {
+        const crossed = wrapped ? (f > from || f <= to) : (f > from && f <= to);
+        if (crossed) play();
+      });
+    };
+
     const animate = (time: number) => {
       if (!startTimeRef.current) startTimeRef.current = time;
       const elapsed = time - startTimeRef.current;
       const frac = (elapsed % measureLength) / measureLength;
       setProgress(frac);
+
+      if (firstFrame) {
+        firstFrame = false;
+        if (leftOnsets[0] === 0) playKick();
+        if (rightOnsets[0] === 0) playSnare();
+        playMetronome();
+        lastFrac = frac;
+      } else {
+        const wrapped = frac < lastFrac;
+        fireCrossed(leftOnsets, lastFrac, frac, wrapped, playKick);
+        fireCrossed(rightOnsets, lastFrac, frac, wrapped, playSnare);
+        if (wrapped) playMetronome();
+        lastFrac = frac;
+      }
+
       requestRef.current = requestAnimationFrame(animate);
     };
 
@@ -118,11 +140,11 @@ function App() {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
       startTimeRef.current = undefined;
     };
-  }, [play, bpm, leftBeat, rightBeat]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [play, bpm, leftBeat, rightBeat, leftOnsets, rightOnsets]);
 
   const handleKeydown = (event: KeyboardEvent) => {
     const key = event.key.toLowerCase();
-    const now = performance.now();
 
     if (configuring === "left") {
       setLeftInput(key);
@@ -133,29 +155,11 @@ function App() {
     } else {
       if (key === leftInput) {
         playKick();
-        const closest = findClosest(now, leftBeatsRef.current);
-        recordOffset(now - closest);
       } else if (key === rightInput) {
         playSnare();
-        const closest = findClosest(now, rightBeatsRef.current);
-        recordOffset(now - closest);
       }
     }
   };
-
-  function findClosest(time: number, beats: number[]) {
-    if (beats.length === 0) return time;
-    return beats.reduce((a, b) =>
-      Math.abs(b - time) < Math.abs(a - time) ? b : a
-    );
-  }
-
-  function recordOffset(offset: number) {
-    const absOffset = Math.abs(offset);
-    offsetsRef.current.push(absOffset);
-    const avg = offsetsRef.current.reduce((a, b) => a + b, 0) / offsetsRef.current.length;
-    setAvgOffset(avg);
-  }
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeydown);
@@ -175,19 +179,19 @@ function App() {
               w="100%"
               justifyContent="space-between"
             >
-              <Button 
-                variant = "outline" 
+              <Button
+                variant="outline"
                 onClick={leftSet}
-                bg = "black.100"
-                color = "white"
+                bg="black.100"
+                color="white"
               >
                 Left Input: ({leftInput})
               </Button>
-              <Button 
+              <Button
                 onClick={rightSet}
-                variant = "outline"
-                bg = "black.100"
-                color = "white"
+                variant="outline"
+                bg="black.100"
+                color="white"
               >
                 Right Input: ({rightInput})
               </Button>
@@ -231,39 +235,33 @@ function App() {
                 pointerEvents="none"
               >
                 <Box w="100%" position="relative" h="20px">
-                  {[...Array(leftBeat)].map((_, i) => {
-                    const position = (i / leftBeat) * 100;
-                    return (
-                      <Box
-                        key={`left-pill-${i}`}
-                        w="30px"
-                        h="10px"
-                        bg="teal.300"
-                        borderRadius="full"
-                        position="absolute"
-                        left={`${position}%`}
-                        transform="translateX(-50%)"
-                      />
-                    );
-                  })}
+                  {leftOnsets.map((frac, i) => (
+                    <Box
+                      key={`left-pill-${i}`}
+                      w="30px"
+                      h="10px"
+                      bg="teal.300"
+                      borderRadius="full"
+                      position="absolute"
+                      left={`${frac * 100}%`}
+                      transform="translateX(-50%)"
+                    />
+                  ))}
                 </Box>
 
                 <Box w="100%" position="relative" h="20px">
-                  {[...Array(rightBeat)].map((_, i) => {
-                    const position = (i / rightBeat) * 100;
-                    return (
-                      <Box
-                        key={`right-pill-${i}`}
-                        w="30px"
-                        h="10px"
-                        bg="pink.300"
-                        borderRadius="full"
-                        position="absolute"
-                        left={`${position}%`}
-                        transform="translateX(-50%)"
-                      />
-                    );
-                  })}
+                  {rightOnsets.map((frac, i) => (
+                    <Box
+                      key={`right-pill-${i}`}
+                      w="30px"
+                      h="10px"
+                      bg="pink.300"
+                      borderRadius="full"
+                      position="absolute"
+                      left={`${frac * 100}%`}
+                      transform="translateX(-50%)"
+                    />
+                  ))}
                 </Box>
               </VStack>
             </Box>
@@ -276,12 +274,9 @@ function App() {
               </MenuButton>
               <MenuList>
                 {beats.map((beat) => (
-                  <MenuItem 
-                    key={`left-${beat}`} 
-                    onClick={() => {
-                      setLeftBeat(beat);
-                      setPlay("pause");
-                    }}
+                  <MenuItem
+                    key={`left-${beat}`}
+                    onClick={() => chooseLeftBeat(beat)}
                   >
                     {beat}
                   </MenuItem>
@@ -295,12 +290,9 @@ function App() {
               </MenuButton>
               <MenuList>
                 {beats.map((beat) => (
-                  <MenuItem 
-                    key={`right-${beat}`} 
-                    onClick={() => {
-                      setRightBeat(beat);
-                      setPlay("pause");
-                    }}
+                  <MenuItem
+                    key={`right-${beat}`}
+                    onClick={() => chooseRightBeat(beat)}
                   >
                     {beat}
                   </MenuItem>
@@ -308,8 +300,8 @@ function App() {
               </MenuList>
             </Menu>
 
-            <PlayButton 
-              playing={play === "play"} 
+            <PlayButton
+              playing={play === "play"}
               onClick={() => {
                 setPlay(prev => {
                   const next = prev === "play" ? "pause" : "play";
@@ -318,7 +310,7 @@ function App() {
                   }
                   return next;
                 });
-              }} 
+              }}
             />
 
             <Text fontWeight="bold" color="blue.100">BPM: </Text>
@@ -339,20 +331,23 @@ function App() {
                 }
               }}
             />
-            <Button 
+            <Button
               paddingLeft="8%"
               paddingRight="8%"
-              bg = "orange.400"
-              color = "blue.800"
+              bg="orange.400"
+              color="blue.800"
               variant="outline"
               onClick={onOpen}
-                > Upload File (TBD)
+            > Upload Score
             </Button>
-            <UploadFileModal isOpen={isOpen} onClose={onClose}/>
+            <UploadFileModal isOpen={isOpen} onClose={onClose} onParsed={handleParsed} />
           </HStack>
-          <Text color="white" fontWeight="bold">
-            Avg Offset: {avgOffset !== null ? avgOffset.toFixed(1) + " ms" : "--"}
-          </Text>
+
+          {scoreImage && (
+            <Box maxW="40vw">
+              <Image src={scoreImage} alt="Extracted score excerpt" borderRadius="md" />
+            </Box>
+          )}
         </VStack>
       </Center>
     </Box>
