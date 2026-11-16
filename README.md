@@ -2,7 +2,15 @@
 
 # Poly
 
-Interactive polyrhythm metronome.
+Interactive polyrhythm metronome. Allows for custom keybinds for realtime input and feedback along with uploading of scores to parse specified measures for polyrhythms.
+
+
+> [!NOTE]
+> While you can freely upload scores and parse them, the rendering and extraction of polyrhythms is not perfect. For now, the algorithm works best with simpler measures where there are not several voices interacting with one another. Rendering also only is possible in treble clef due to the limitations of musicxml, meaning bass clef notes will be instead shown as very low treble clef notes. Both of these issues are a WIP, and I hope to fix them in the near future.
+
+
+
+## **FOR DEV:**
 
 Frontend: React w/ TypeScript, ChakraUI, dev & build on Vite, deployed on Vercel  
 Backend: Supabase - PostgreSQL, Python (FastAPI, Partitura)
